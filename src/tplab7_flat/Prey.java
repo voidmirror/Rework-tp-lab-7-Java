@@ -17,6 +17,13 @@ public class Prey implements Unit {
         age++;
     }
 
+    public boolean readyToReproduction() {
+        return age % 2 == 1;
+    }
+
+    public Prey processReproduction() {
+        return new Prey();
+    }
 
 
 }

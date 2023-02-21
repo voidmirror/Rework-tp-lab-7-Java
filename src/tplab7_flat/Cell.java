@@ -6,34 +6,49 @@ public class Cell {
 
     private Unit unit;
 
-    Cell() {
-        Random random = new Random();
-        int r = random.nextInt(100);
-        if (r < 10) {
-            unit = new Stone();
-        } else if (r < 70) {
-            unit = new Prey();
-        } else if (r < 90) {
-            unit = new Predator();
+//    public Cell() {
+//
+//    }
+
+    public Cell(boolean empty) {
+        if (empty) {
+            this.unit = null;
         } else {
-            unit = null;                // empty cell
+            Random random = new Random();
+            int r = random.nextInt(100);
+            if (r < 10) {
+                unit = new Stone();
+            } else if (r < 70) {
+                unit = new Prey();
+            } else if (r < 90) {
+                unit = new Predator();
+            } else {
+                unit = null;                // empty cell
+            }
         }
+    }
+
+    public Unit getUnit() {
+        return unit;
+    }
+
+    public void setUnit(Unit unit) {
+        this.unit = unit;
     }
 
     void live() {
 
         if (unit != null) {
 
-            if (unit instanceof Predator) {
+            if (isPredator()) {
                 Predator predator = (Predator) unit;
                 if (predator.getAge() >= Predator.getTTL()) {
                     unit = null;
                     return;
                 }
+                predator.grow();
 
-
-
-            } else if (unit instanceof Prey) {
+            } else if (isPray()) {
                 Prey prey = (Prey) unit;                // Downcast
                 if (prey.getAge() >= Prey.getTTL()) {
                     unit = null;
@@ -41,12 +56,29 @@ public class Cell {
                 }
                 prey.grow();
 
-            } else if (unit instanceof Stone) {
+            } else if (isStone()) {
 
             }
 
         }
 
     }
+
+    public boolean isStone() {
+        return this.unit instanceof Stone;
+    }
+
+    public boolean isPray() {
+        return this.unit instanceof Prey;
+    }
+
+    public boolean isPredator() {
+        return this.unit instanceof Predator;
+    }
+
+    public boolean isEmpty() {
+        return this.unit == null;
+    }
+
 
 }
