@@ -1,20 +1,25 @@
 package tplab7_flat;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Ocean {
 
-    private static int SIZE = 15;
+    private static int HEIGHT = 15;
+    private static int WIDTH = 50;
 
-    ArrayList<ArrayList<Cell>> ocean = new ArrayList<>();
-    ArrayList<ArrayList<Cell>> oceanNextStep = new ArrayList<>();
+    ArrayList<ArrayList<Cell>> ocean;
+    ArrayList<ArrayList<Cell>> oceanNextStep;
 
-    void make() {
-        for (int i = 0; i < SIZE; i++) {
+    public void make() {
+         ocean = new ArrayList<>();
+
+        for (int i = 0; i < HEIGHT; i++) {
             ArrayList<Cell> line = new ArrayList<>();
-            for (int j = 0; j < SIZE; j++) {
-                if (i == 0 || j == 0 || i == SIZE - 1 || j == SIZE -1) {
+            for (int j = 0; j < WIDTH; j++) {
+                if (i == 0 || j == 0 || i == HEIGHT - 1 || j == WIDTH -1) {
                     line.add(new Cell(true));                             // Пустая клетка
                     line.get(j).setUnit(new Stone());                           // Заполняем камнем
                 }
@@ -23,9 +28,15 @@ public class Ocean {
             ocean.add(line);
         }
 
-        for (int i = 0; i < SIZE; i++) {
+        makeOceanNextStep();
+
+    }
+
+    private void makeOceanNextStep() {
+        oceanNextStep = new ArrayList<>();
+        for (int i = 0; i < HEIGHT; i++) {
             ArrayList<Cell> line = new ArrayList<>();
-            for (int j = 0; j < SIZE; j++) {
+            for (int j = 0; j < WIDTH; j++) {
                 line.add(new Cell(true));                              // Пустая клетка
             }
             oceanNextStep.add(line);
@@ -37,22 +48,45 @@ public class Ocean {
      * 1) prey: isDead? -> grow -> move                 (относительно ocean)
      * 2) predator: isDead -> grow -> move -> eat       (относительно oceanNextStep)
      */
-    void live() {
-        prepareNextStep();
-        move();
-        reproduction();
+    public void live() {
 
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
+        while (true) {
+            printOcean(ocean);
+            prepareNextStep();
+            move();
+            reproduction();
+            eat();
+            doStep();
+            System.out.println();
+            try {
+                Thread.sleep(30000);
+//                Runtime.getRuntime().exec("cls");
 
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+
+
+//                final String ANSI_CLS = "\u001b[2J";
+//                final String ANSI_HOME = "\u001b[H";
+//                System.out.print(ANSI_CLS + ANSI_HOME);
+//                System.out.flush();
+
+
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
             }
         }
+
+//        for (int i = 0; i < SIZE; i++) {
+//            for (int j = 0; j < SIZE; j++) {
+//
+//            }
+//        }
     }
 
-    void prepareNextStep() {
+    private void prepareNextStep() {
         // Copy stones (not necessary, but prevent Stone changes)
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
+        for (int i = 0; i < HEIGHT; i++) {
+            for (int j = 0; j < WIDTH; j++) {
                 Cell c = ocean.get(i).get(j);
                 if (c.isStone()) {
                     oceanNextStep.get(i).set(j, c);
@@ -61,12 +95,12 @@ public class Ocean {
         }
     }
 
-    void move() {
+    private void move() {
         Random random = new Random();
 
         // PREYS
-        for (int i = 1; i < SIZE - 1; i++) {
-            for (int j = 1; j < SIZE - 1; j++) {
+        for (int i = 1; i < HEIGHT - 1; i++) {
+            for (int j = 1; j < WIDTH - 1; j++) {
                 int x = random.nextInt(3) - 1;
                 int y = random.nextInt(3) - 1;
                 Cell current = ocean.get(i).get(j);
@@ -82,8 +116,8 @@ public class Ocean {
         }
 
         // PREDATORS
-        for (int i = 1; i < SIZE - 1; i++) {
-            for (int j = 1; j < SIZE - 1; j++) {
+        for (int i = 1; i < HEIGHT - 1; i++) {
+            for (int j = 1; j < WIDTH - 1; j++) {
                 int x = random.nextInt(3) - 1;
                 int y = random.nextInt(3) - 1;
                 Cell current = ocean.get(i).get(j);
@@ -105,10 +139,10 @@ public class Ocean {
         }
     }
 
-    void reproduction() {
+    private void reproduction() {
 
-        for (int i = 1; i < SIZE - 1; i++) {
-            for (int j = 1; j < SIZE - 1; j++) {
+        for (int i = 1; i < HEIGHT - 1; i++) {
+            for (int j = 1; j < WIDTH - 1; j++) {
 
                 Cell current = ocean.get(i).get(j);
                 Unit unit = null;                           // May produce NullPointerException ----
@@ -125,7 +159,7 @@ public class Ocean {
 
     }
 
-    void findReproductionPlaceAround(Unit unit, int x, int y) {
+    private void findReproductionPlaceAround(Unit unit, int x, int y) {
         boolean done = false;
         for (int i = x - 1; i < x + 2; i++) {
             for (int j = y - 1; j < y + 2; j++) {
@@ -141,19 +175,42 @@ public class Ocean {
         }
     }
 
-    void eat() {
+    private void eat() {
 
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
+        for (int i = 1; i < HEIGHT - 1; i++) {
+            for (int j = 1; j < WIDTH - 1; j++) {
                 Cell cell = oceanNextStep.get(i).get(j);
                 if (cell.isPredator()) {
+                    Predator predator = (Predator) cell.getUnit();
 
-                    
+                    for (int row = i - 1; row < i + 2 && predator.getSatiety() < Predator.getTTR(); row++) {
+                        for (int col = j - 1; col < j + 2 && predator.getSatiety() < Predator.getTTR(); col++) {
+                            Cell checking = oceanNextStep.get(row).get(col);
+                            if (checking.isPray() && !checking.isPredator()) {
+                                cell.setUnit(null);
+                                predator.increaseSatiety();
+                            }
+                        }
+                    }
 
                 }
             }
         }
 
+    }
+
+    public void printOcean(ArrayList<ArrayList<Cell>> ocean) {
+        for (int i = 0; i < HEIGHT; i++) {
+            for (int j = 0; j < WIDTH; j++) {
+                System.out.print(ocean.get(i).get(j));
+            }
+            System.out.println();
+        }
+    }
+
+    public void doStep() {
+        ocean = oceanNextStep;
+        makeOceanNextStep();
     }
 
 

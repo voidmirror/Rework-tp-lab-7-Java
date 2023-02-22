@@ -25,5 +25,8 @@ public class Prey implements Unit {
         return new Prey();
     }
 
-
+    @Override
+    public String toString() {
+        return "+";
+    }
 }

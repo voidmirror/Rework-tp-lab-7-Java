@@ -80,5 +80,8 @@ public class Cell {
         return this.unit == null;
     }
 
-
+    @Override
+    public String toString() {
+        return unit == null ? " " : unit.toString();
+    }
 }
