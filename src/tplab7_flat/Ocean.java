@@ -2,13 +2,12 @@ package tplab7_flat;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class Ocean {
 
-    private static int HEIGHT = 15;
-    private static int WIDTH = 50;
+    private final static int HEIGHT = 15;
+    private final static int WIDTH = 50;
 
     ArrayList<ArrayList<Cell>> ocean;
     ArrayList<ArrayList<Cell>> oceanNextStep;
@@ -59,7 +58,7 @@ public class Ocean {
             doStep();
             System.out.println();
             try {
-                Thread.sleep(30000);
+                Thread.sleep(10000);
 //                Runtime.getRuntime().exec("cls");
 
                 new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
@@ -163,10 +162,12 @@ public class Ocean {
         boolean done = false;
         for (int i = x - 1; i < x + 2; i++) {
             for (int j = y - 1; j < y + 2; j++) {
-                Cell checking = oceanNextStep.get(i).get(j);
-                if (checking.isEmpty()) {
-                    checking.setUnit(unit);
-                    done = true;
+                if (i != j) {
+                    Cell checking = oceanNextStep.get(i).get(j);
+                    if (checking.isEmpty()) {
+                        checking.setUnit(unit);
+                        done = true;
+                    }
                 }
             }
         }
@@ -185,10 +186,12 @@ public class Ocean {
 
                     for (int row = i - 1; row < i + 2 && predator.getSatiety() < Predator.getTTR(); row++) {
                         for (int col = j - 1; col < j + 2 && predator.getSatiety() < Predator.getTTR(); col++) {
-                            Cell checking = oceanNextStep.get(row).get(col);
-                            if (checking.isPray() && !checking.isPredator()) {
-                                cell.setUnit(null);
-                                predator.increaseSatiety();
+                            if (row != col) {
+                                Cell checking = oceanNextStep.get(row).get(col);
+                                if (checking.isPray() && !checking.isPredator()) {
+                                    checking.setUnit(null);
+                                    predator.increaseSatiety();
+                                }
                             }
                         }
                     }
